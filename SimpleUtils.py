@@ -1,6 +1,38 @@
 import numpy
 import openravepy
 
+class SimpleManipulation:
+    def __init__(self, env, robot):
+        self.env = env
+        self.robot = robot
+        self.eff = self.robot.GetActiveManipulator()
+        self.iksolver = openravepy.RaveCreateIkSolver(env, 'NloptIK')
+        self.eff.SetIKSolver(self.iksolver)
+        self.planner = SimplePlanner(self.env)
+
+    def FindIKSolution(self, goal):
+        return self.eff.FindIKSolution(
+                goal, openravepy.IkFilterOptions.CheckEnvCollisions)
+
+    def MoveToGoal(self, goal, execute=False):
+        """
+        Move manipulator to goal end effector transform, or return the
+        trajectory if execute is False.
+
+        @param goal the goal end effector transform
+        @return traj a trajectory from current configuration to specified goal
+        """
+
+        config = self.robot.GetDOFValues()
+        indices = self.eff.GetArmIndices()
+        soln = self.FindIKSolution(goal)
+        numpy.put(config, indices, soln)
+        traj = self.planner.PlanToConfiguration(self.robot, config)
+        if execute:
+            self.robot.GetController().SetPath(traj)
+        return traj
+
+
 class SimplePlanner:
     def __init__(self, env, planner='birrt'):
         self.env = env
