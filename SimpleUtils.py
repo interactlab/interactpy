@@ -14,6 +14,10 @@ class SimpleManipulation:
         return self.eff.FindIKSolution(
                 goal, openravepy.IkFilterOptions.CheckEnvCollisions)
 
+
+    def ExecuteTrajectory(self, traj):
+        self.robot.GetController().SetPath(traj)
+
     def MoveToGoal(self, goal, execute=False):
         """
         Move manipulator to goal end effector transform, or return the
@@ -28,8 +32,9 @@ class SimpleManipulation:
         soln = self.FindIKSolution(goal)
         numpy.put(config, indices, soln)
         traj = self.planner.PlanToConfiguration(self.robot, config)
+        self.planner.SmoothTrajectory(traj, self.robot)
         if execute:
-            self.robot.GetController().SetPath(traj)
+            self.ExecuteTrajectory(traj)
         return traj
 
 
@@ -37,6 +42,7 @@ class SimplePlanner:
     def __init__(self, env, planner='birrt'):
         self.env = env
         self.planner = openravepy.RaveCreatePlanner(self.env, planner)
+        self.smoother = openravepy.RaveCreatePlanner(self.env, 'ParabolicSmoother')
 
     def PlanToConfiguration(self, robot, goal, time_traj=True, **kw_args):
         """
@@ -53,6 +59,13 @@ class SimplePlanner:
             with self.env:
                 openravepy.planningutils.RetimeActiveDOFTrajectory(traj, robot)
         return traj
+
+    def SmoothTrajectory(self, traj, robot):
+        with self.env:
+            planner_params = openravepy.Planner.PlannerParameters()
+            planner_params.SetRobotActiveJoints(robot)
+            self.smoother.InitPlan(robot, planner_params)
+            self.smoother.PlanPath(traj)
 
     def GenerateRetimedTrajectory(self, robot, traj, f=lambda t: t, num_wp_new=None):
         '''Retimes input trajectory for robot according to the given function f.
