@@ -136,10 +136,10 @@ class SimplePlanner:
             from openravepy import PlannerStatus
             if status not in [PlannerStatus.HasSolution,
                               PlannerStatus.InterruptedWithSolution]:
-                raise PlanningError('Planner returned with status {:s}.'
+                raise openravepy.PlanningError('Planner returned with status {:s}.'
                                     .format(str(status)))
         except Exception as e:
-            raise PlanningError('Planning failed with error: {:s}'.format(e))
+            raise openravepy.PlanningError('Planning failed with error: {:s}'.format(e))
         finally:
             self.env.Unlock()
 
