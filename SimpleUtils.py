@@ -1,6 +1,9 @@
 import numpy
 import openravepy
 
+class PlanningError(Exception):
+    pass
+
 class SimpleManipulation:
     def __init__(self, env, robot):
         self.env = env
@@ -67,7 +70,7 @@ class SimplePlanner:
             self.smoother.InitPlan(robot, planner_params)
             self.smoother.PlanPath(traj)
 
-    def GenerateRetimedTrajectory(self, robot, traj, f=lambda t: t, num_wp_new=None):
+    def GenerateRetimedTrajectory(self, robot, traj, f=lambda t: t, num_wp_new=None, factor=1):
         '''Retimes input trajectory for robot according to the given function f.
 
         Here f maps new trajectory time to source trajectory time, where inputs and
@@ -89,7 +92,7 @@ class SimplePlanner:
         new_traj = openravepy.RaveCreateTrajectory(robot.GetEnv(), '')
         new_traj.Init(spec)
 
-        t_interval = dur / (num_wp_new - 1)
+        t_interval = factor * (dur / (num_wp_new - 1))
         beginning, end = traj.GetWaypoint(0), traj.GetWaypoint(num_wp_src - 1)
         # The start waypoint remains the same
         new_traj.Insert(0, beginning)
@@ -136,10 +139,10 @@ class SimplePlanner:
             from openravepy import PlannerStatus
             if status not in [PlannerStatus.HasSolution,
                               PlannerStatus.InterruptedWithSolution]:
-                raise openravepy.PlanningError('Planner returned with status {:s}.'
+                raise PlanningError('Planner returned with status {:s}.'
                                     .format(str(status)))
         except Exception as e:
-            raise openravepy.PlanningError('Planning failed with error: {:s}'.format(e))
+            raise PlanningError('Planning failed with error: {:s}'.format(e))
         finally:
             self.env.Unlock()
 
