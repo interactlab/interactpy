@@ -86,8 +86,8 @@ class SimplePlanner:
         num_wp_new = num_wp_src if not num_wp_new else num_wp_new
         dur, spec = traj.GetDuration(), traj.GetConfigurationSpecification()
         # Make sure that input function does not change total trajectory duration
-        assert abs(f(1) - 1.0) < .001
-        assert abs(f(0) - 0.0) < .001
+        assert abs(f(1) - 1.0) < .01
+        assert abs(f(0) - 0.0) < .01
 
         new_traj = openravepy.RaveCreateTrajectory(robot.GetEnv(), '')
         new_traj.Init(spec)
@@ -136,9 +136,8 @@ class SimplePlanner:
                 self.setup = True
 
             status = self.planner.PlanPath(traj, releasegil=True)
-            from openravepy import PlannerStatus
-            if status not in [PlannerStatus.HasSolution,
-                              PlannerStatus.InterruptedWithSolution]:
+            if status not in [openravepy.PlannerStatus.HasSolution,
+                              openravepy.PlannerStatus.InterruptedWithSolution]:
                 raise PlanningError('Planner returned with status {:s}.'
                                     .format(str(status)))
         except Exception as e:
