@@ -97,7 +97,7 @@ class SimplePlanner:
         # The start waypoint remains the same
         new_traj.Insert(0, beginning)
         for i in range(1, num_wp_new-1):
-            wp = traj.Sample(dur * f(float(i) / num_wp_new))
+            wp = traj.Sample(max(dur * f(float(i) / num_wp_new), 0))
             spec.InsertDeltaTime(wp, t_interval)
             new_traj.Insert(i, wp)
         # End waypoint remains the same
