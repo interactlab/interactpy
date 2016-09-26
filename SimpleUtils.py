@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import openravepy
 
 class PlanningError(Exception):
@@ -33,7 +33,7 @@ class SimpleManipulation:
         config = self.robot.GetDOFValues()
         indices = self.eff.GetArmIndices()
         soln = self.FindIKSolution(goal)
-        numpy.put(config, indices, soln)
+        np.put(config, indices, soln)
         traj = self.planner.PlanToConfiguration(self.robot, config)
         self.planner.SmoothTrajectory(traj, self.robot)
         if execute:
@@ -146,3 +146,59 @@ class SimplePlanner:
             self.env.Unlock()
 
         return traj
+
+def LinearInterpolation(start_config, goal_config, num_steps, robot):
+    """
+    Return a path of num_steps configurations between start_config and
+    goal_config. The steps are equally spaced and linear in configuration space.
+    @param start_config the configuration at which the trajectory starts
+    @param goal_config the configuration at which the trajectory ends
+    @param num_steps the number of intermediate configurations in the trajectory
+    @param robot the robot which is to perform this trajectory.
+    """
+    diff_config = robot.SubtractActiveDOFValues(goal_config, start_config)
+    step = diff_config / num_steps
+    waypoints =  [list(start_config)]
+    last_config = list(start_config)
+    for i in range(num_steps):
+        last_config += step
+        waypoints.append(list(last_config))
+    return waypoints
+
+def MakeIntoTrajectoryWaypoints(configs, total_time, joint_values_offset=0,
+                                joint_velocities_offset=10, delta_time_offset=20,
+                                is_waypoint_offset=21):
+    """
+    Take a list of configurations, and make into one list that could be the data
+    in OpenRAVE TrajectoryBase waypoints. 
+    @param configs a list of configurations
+    @param total_time how much time we want the trajectory to take
+    @param joint_values_offset the offset in the configurations specification
+        where the joint values in a waypoint start
+    @param joint_velocities_offset the offset in the configurations specification
+        where the joint velocities in a waypoint start
+    @param delta_time_offset the offset in the configurations specification
+        where the delta_time in a waypoint is.
+    @param is_waypoint_offset the offset in the configurations specification
+        where the iswaypoint field in a waypoint is.
+    The default offset values are set to fit to a waypoint of a normal Jaco
+    trajectory.
+    """
+    num_waypoints = len(configs)
+    num_dofs = len(configs[0])
+    # A waypoint has joint values, joint velocities, deltatime and iswaypoint
+    waypoint_length = num_dofs*2 + 2
+    time_per_waypoint = total_time*1.0 / num_waypoints
+    waypoints = []
+    for i in range(num_waypoints):
+        waypoint = np.zeros(waypoint_length)
+        waypoint[joint_values_offset:joint_values_offset + num_dofs] =\
+            configs[i]
+        waypoint[delta_time_offset] = time_per_waypoint
+        waypoint[joint_velocities_offset:joint_velocities_offset + num_dofs] =\
+            np.subtract(configs[i],configs[i-1]) / (time_per_waypoint*1.0)
+        waypoint[is_waypoint_offset] = 1
+        waypoints.extend(waypoint)
+        if i == 1:
+            print waypoint
+    return waypoints
