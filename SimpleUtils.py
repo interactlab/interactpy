@@ -1,22 +1,23 @@
 import numpy
 import openravepy
 
+
 class PlanningError(Exception):
     pass
 
+
 class SimpleManipulation:
-    def __init__(self, env, robot):
+    def __init__(self, env, robot, ik_name='NloptIK'):
         self.env = env
         self.robot = robot
         self.eff = self.robot.GetActiveManipulator()
-        self.iksolver = openravepy.RaveCreateIkSolver(env, 'NloptIK')
+        self.iksolver = openravepy.RaveCreateIkSolver(env, ik_name)
         self.eff.SetIKSolver(self.iksolver)
         self.planner = SimplePlanner(self.env)
 
     def FindIKSolution(self, goal):
         return self.eff.FindIKSolution(
                 goal, openravepy.IkFilterOptions.CheckEnvCollisions)
-
 
     def ExecuteTrajectory(self, traj):
         self.robot.GetController().SetPath(traj)
