@@ -1,3 +1,6 @@
+# TODO(allanzhou): All the stuff in here should eventually be
+# moved into the appropriate files.
+
 import openravepy
 import numpy as np
 from scipy.interpolate import *

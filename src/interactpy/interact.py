@@ -1,4 +1,6 @@
 import openravepy
+from bind import bind_subclass
+from archierobot import ArchieRobot
 
 
 def initialize():
@@ -13,6 +15,7 @@ def initialize():
     robot_name = or_urdf.SendCommand(
         'load {:s} {:s}'.format(urdf_uri, srdf_uri))
     robot = env.GetRobot(robot_name)
+    bind_subclass(robot, ArchieRobot)
     # Put robot in natural starting config.
     # TODO(allanzhou): Decide if this is really necessary.
     robot.SetDOFValues([0, 3, 0, 2, 0, 4, 0, 0, 0, 0])
