@@ -1,6 +1,9 @@
 import numpy as np
 import openravepy
 
+# TODO(allanzhou): All the stuff in here should eventually be
+# moved into the appropriate files.
+
 
 class PlanningError(Exception):
     pass
