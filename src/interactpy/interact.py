@@ -1,5 +1,5 @@
 import openravepy
-from bind import bind_subclass
+from prpy.bind import bind_subclass
 from archierobot import ArchieRobot
 
 
