@@ -267,26 +267,16 @@ def AddChangeToTrajectory(trajectory, change_index, change_dofs, env,
         joint_values field"
     new_trajectory = orp.RaveCreateTrajectory(env, "")
     new_trajectory.Init(configuration_specification)
-    print propagation_weights
     for i in range(trajectory.GetNumWaypoints()):
-        print "HEYHEY", i
         waypoint = trajectory.GetWaypoint(i)
         waypoint_joint_values = GetGroupValues(waypoint, "joint_values",
                                                configuration_specification)
         difference_to_change = change_dofs - waypoint_joint_values
         new_waypoint_joint_values = waypoint_joint_values +\
                                     propagation_weights[i] * difference_to_change
-        if i == 2:
-            print propagation_weights[i]
-            print difference_to_change
-            print "old", waypoint_joint_values
-            print "new", new_waypoint_joint_values
-            print "difference", new_waypoint_joint_values - waypoint_joint_values
         waypoint = SetGroupValues(waypoint, new_waypoint_joint_values,
                                   "joint_values", configuration_specification)
-        print waypoint
         new_trajectory.Insert(new_trajectory.GetNumWaypoints(), waypoint)
-        print "HEYHEYHEY", new_trajectory.GetNumWaypoints()
     if keep_times:
         new_trajectory = MakeLogicalKeepTimes(new_trajectory, env)
     else:
@@ -346,17 +336,12 @@ def MakeLogicalKeepTimes(trajectory, env):
         delta_time = GetGroupValues(waypoint, "deltatime",
                                     configuration_spec)
         new_velocities = joint_values_difference / delta_time
-        print i
-        print "old", GetGroupValues(waypoint, "joint_velocities",
-                                   configuration_spec) 
-        print "oi", new_velocities
         waypoint = SetGroupValues(waypoint, new_velocities, "joint_velocities",
                                   configuration_spec)
         new_trajectory.Insert(i, waypoint)
     new_trajectory.Insert(new_trajectory.GetNumWaypoints(),
         trajectory.GetWaypoint(trajectory.GetNumWaypoints() - 1))
     return new_trajectory
-    kkk
 
 # TODO
 def MakeLogicalKeepJointVelocities(trajectory):
