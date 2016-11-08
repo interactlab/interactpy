@@ -9,8 +9,8 @@ def initialize():
     env.SetViewer('qtcoin')
     # Assumes the robot files are located in the urdf folder of the
     # kinova_description package in the catkin workspace.
-    urdf_uri = 'package://kinova_description/urdf/j2s7s300_standalone.urdf'
-    srdf_uri = 'package://kinova_description/urdf/jaco7dof_standalonev1.srdf'
+    urdf_uri = 'package://interactpy/jaco.urdf'
+    srdf_uri = 'package://interactpy/jaco.srdf'
     or_urdf = openravepy.RaveCreateModule(env, 'urdf')
     robot_name = or_urdf.SendCommand(
         'load {:s} {:s}'.format(urdf_uri, srdf_uri))
